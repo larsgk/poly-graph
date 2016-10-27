@@ -1,0 +1,212 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+<!--
+`poly-graph`
+Live or static timeseries and element graphing
+
+@demo demo/index.html
+-->
+
+<dom-module id="poly-graph">
+  <template>
+    <style>
+      :host {
+        display: block;
+        background-color: #ddd;
+      }
+
+      canvas {
+        display: block;
+      }
+    </style>
+    <canvas id="polygraph" width="[[_width]]" heigh="[[_height]]"></canvas>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'poly-graph',
+
+      properties: {
+        pens: {
+          type: Object,
+          value: {},
+        },
+        _width: Number,
+        _height: Number,
+        min: {
+          type: Number,
+          value: -1
+        },
+        max: {
+          type: Number,
+          value: 1
+        },
+        topmargin: {
+          type: Number,
+          value: 5
+        },
+        bottommargin: {
+          type: Number,
+          value: 5
+        },
+        running: {
+          type: Boolean,
+          value: true
+        },
+        pixelsPerSecond: {
+          type: Number,
+          value: 50
+        }
+      },
+
+      behaviors: [
+        Polymer.IronResizableBehavior
+      ],
+
+      listeners: {
+        'iron-resize': '_onIronResize'
+      },
+
+      attached: function() {
+        this.async(this.notifyResize, 1);
+
+        this._demoData();
+        this._gameLoop();
+      },
+
+      _demoData: function() {
+        this.addPen('red', '#f00', 'DaRed');
+        this.addPen('green', '#0f0', 'DaGreen');
+        this.addPen('blue', '#00f', 'DaBlue', true);
+        var count1 = 0;
+        setInterval(function() {
+          this.addValue('red', Math.sin(count1 * 0.1));
+          count1++;
+        }.bind(this), 50);
+
+        var count2 = 0;
+        setInterval(function() {
+          this.addValue('green', Math.sin(count2 * 0.2));
+          count2++;
+        }.bind(this), 20);
+
+        var count3 = 0;
+        setInterval(function() {
+          this.addValue('blue', Math.sin(count2 * 0.02));
+          count3++;
+        }.bind(this), 300);
+      },
+
+      addPen: function(id, color, name, dotsOnly)  {
+        if(this.pens[id]) {
+          console.log("Pen already added: ", id);
+        }
+
+        this.pens[id] = {color:color,name:name,line:!dotsOnly,data:[]}
+      },
+
+      addValue: function(id, value, timestamp) {
+        var pen = this.pens[id];
+        if(!pen)
+          return;
+
+        if(!timestamp) timestamp = Date.now();
+
+        // time must go forward
+        if(pen.data.length > 0 && pen.data[pen.data.length-1].t >= timestamp)
+          return;
+
+        pen.data.push({v:value, t:timestamp});
+        //console.log("added", {v:value, t:timestamp});
+        this._invalid = true;
+        // do rAF repaint... or wait for all (through notify/debounce)
+      },
+
+      _onIronResize: function() {
+        if(this.offsetWidth == this._width && this.offsetHeight == this._height)
+          return;
+
+        console.log(this.offsetWidth, this.offsetHeight);
+
+        this._width = this.offsetWidth;
+        this._height = this.offsetHeight;
+
+        this._recalcFactors();
+        this._invalid = true;
+      },
+
+      _recalcFactors: function() {
+        this._ya = -(this._height - this.bottommargin - this.topmargin) / (this.max - this.min);
+        this._yb = this.topmargin - this._ya * this.max;
+      },
+
+      _calcPos: function(point, pos, now) {
+        pos.x =  this._width - 5 - (now - point.t) * 0.001 * this.pixelsPerSecond;
+        pos.y = this._ya * point.v + this._yb;
+      },
+
+      _gameLoop: function(ts) {
+        this._repaint();
+        if(this.running)
+          requestAnimationFrame(this._gameLoop.bind(this));
+      },
+
+      _repaint: function() {
+        var now = Date.now();
+        var canvas = this.$.polygraph;
+        var ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#FFF';
+        ctx.fillRect(0,0,this._width, this._height);
+
+        // ctx.beginPath();
+        // ctx.moveTo(0,0);
+        // ctx.lineTo(this._width-1,this._height-1);
+        // ctx.moveTo(0,this._height-1);
+        // ctx.lineTo(this._width-1,0);
+        // ctx.stroke();
+
+        var id, pen, ptr, point, pos = {}, dots = [];
+        for(id in this.pens) {
+          pen = this.pens[id];
+          if(pen.data && pen.data.length > 1) {
+            ctx.strokeStyle = pen.color;
+            ctx.beginPath();
+            ptr = pen.data.length-1;
+            this._calcPos(pen.data[ptr], pos, now);
+            if(pen.line) {
+              ctx.moveTo(pos.x, pos.y);
+              dots.push({x:this._width-5,y:pos.y,color:pen.color});
+            } else {
+              ctx.fillStyle = pen.color;
+            }
+            while(ptr >= 0 && pos.x > 0) {
+              this._calcPos(pen.data[ptr], pos, now);
+              if(pen.line)
+                ctx.lineTo(pos.x, pos.y);
+              else {
+                ctx.beginPath();
+                ctx.arc(pos.x,pos.y,4,0,Math.PI*2,false);
+                ctx.fill();
+              }
+              ptr--;
+            }
+           if(pen.line)
+              ctx.stroke();
+          }
+        }
+
+        dots.forEach(function(dot) {
+          ctx.beginPath();
+          ctx.arc(dot.x,dot.y,4,0,Math.PI*2,false);
+          ctx.fillStyle = dot.color;
+          ctx.fill();
+        })
+        // ctx.fillStyle = '#FFF';
+        // ctx.fillRect(0,paperTop,scope.width,paperHeight);
+      }
+
+    });
+  </script>
+</dom-module>

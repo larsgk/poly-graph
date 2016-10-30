@@ -12,6 +12,10 @@
     <link rel="import" href="../poly-graph.html">
 
     <style is="custom-style" include="demo-pages-shared-styles">
+      .centered {
+        max-width: 800px;
+        width: auto;
+      }
     </style>
   </head>
   <body>
@@ -20,10 +24,40 @@
       <h3>Basic poly-graph Demo</h3>
       <demo-snippet>
         <template>
-          <poly-graph></poly-graph>
+          <poly-graph style="height:300px"></poly-graph>
+
+          <script>
+            (function(){
+              var _demoData = function() {
+                var el = document.querySelector('poly-graph');
+
+                el.addPen('red', {color:'#f00', name:'DaRed', lineWidth:3});
+                el.addPen('green', {color:'#0f0', name:'DaGreen'});
+                el.addPen('blue', {color:'#00f', name:'DaBlue', dotsOnly:true});
+                var count1 = 0;
+                setInterval(function() {
+                  el.addValue('red', Math.sin(count1 * 0.1));
+                  count1++;
+                }, 50);
+
+                var count2 = 0;
+                setInterval(function() {
+                  el.addValue('green', Math.sin(count2 * 0.1));
+                  count2++;
+                }, 20);
+
+                var count3 = 0;
+                setInterval(function() {
+                  el.addValue('blue', Math.sin(count2 * 0.02));
+                  count3++;
+                }, 300);
+              }
+
+              setTimeout(_demoData, 1);  // let it settle
+            })();
+          </script>
         </template>
       </demo-snippet>
     </div>
-
   </body>
 </html>

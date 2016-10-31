@@ -8,6 +8,7 @@
 
     <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../paper-slider/paper-slider.html">
 
     <link rel="import" href="../poly-graph.html">
 
@@ -24,7 +25,9 @@
       <h3>Basic poly-graph Demo</h3>
       <demo-snippet>
         <template>
-          <poly-graph style="height:300px"></poly-graph>
+          <poly-graph style="height:300px" speed="50"></poly-graph>
+          <paper-slider id="speedslider" style="width:100%" min="10" max="100" value="50" step="10" pin></paper-slider>
+
 
           <script>
             (function(){
@@ -51,6 +54,12 @@
                   el.addValue('blue', Math.sin(count2 * 0.02));
                   count3++;
                 }, 300);
+
+                var speed = document.querySelector('#speedslider');
+                speed.addEventListener('value-change', function() {
+                  el.speed = speed.value;
+                });
+
               }
 
               setTimeout(_demoData, 1);  // let it settle

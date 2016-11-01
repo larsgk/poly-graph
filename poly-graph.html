@@ -30,6 +30,9 @@ Wishlist (coming soon):
     <style>
       :host {
         display: block;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
       }
 
       canvas {
@@ -46,6 +49,10 @@ Wishlist (coming soon):
 
       properties: {
         pens: {
+          type: Object,
+          value: {},
+        },
+        guides: {
           type: Object,
           value: {},
         },
@@ -79,9 +86,9 @@ Wishlist (coming soon):
         },
 
         /**
-         * Pixels moved per second (timeline)
+         * Pixels per second (x-axis resolution)
          */
-        speed: {
+        resolution: {
           type: Number,
           value: 50
         }
@@ -92,10 +99,33 @@ Wishlist (coming soon):
       ],
 
       listeners: {
-        'iron-resize': '_onIronResize'
+        'iron-resize': '_onIronResize',
+        'zoom-changed': '_onZoomChanged'
       },
 
       attached: function() {
+        var mdown = false;
+
+        // TODO: proper pan/zoom  detect...
+        // this.$.polygraph.addEventListener('mousedown', function(e) {
+        //   console.log('[mousedown]', e);
+        //   mdown = true;
+        // }, true);
+
+        // this.$.polygraph.addEventListener('mouseup', function(e) {
+        //   console.log('[mouseup]', e);
+        //   mdown = false;
+        // }, true);
+
+        // this.$.polygraph.addEventListener('mousemove', function(e) {
+        //   //if(mdown)console.log('[mousedrag]', e);
+        // },true);
+
+        // document.addEventListener('mouseup', function(e) {
+        //   console.log('[mouseup (shadow)]', e);
+        //   mdown = false;
+        // });
+
         this.async(this.notifyResize, 1);
         this._gameLoop();
       },
@@ -110,7 +140,27 @@ Wishlist (coming soon):
           name:options.name ? options.name : "",
           line:!options.dotsOnly,
           lineWidth:options.lineWidth ? options.lineWidth : 1,
-          data:[]}
+          data:[]
+        };
+      },
+
+      addGuide: function(id, options)  {
+        if(this.guides[id]) {
+          console.log("Guide already added: ", id);
+          return;
+        }
+
+        if(!options || options.min === undefined) {
+          console.log("Guide needs at least a 'min' value defined");
+          return;
+        }
+
+        this.guides[id] = {
+          color:options.color ? options.color : '#888',
+          name:options.name ? options.name : "",
+          min:options.min,
+          height:options.height
+        };
       },
 
       addValue: function(id, value, timestamp) {
@@ -142,6 +192,10 @@ Wishlist (coming soon):
         }.bind(this), 100);
       },
 
+      _onZoomChanged: function(val) {
+        this._pixelsPerSecond = 100 * this.zoom;
+      },
+
       _recalcFactors: function() {
         this._ya = -(this.$.polygraph.height - this.bottommargin - this.topmargin) / (this.max - this.min);
         this._yb = this.topmargin - this._ya * this.max;
@@ -152,7 +206,7 @@ Wishlist (coming soon):
       },
 
       _calcPos: function(point, pos, now) {
-        pos.x =  this.$.polygraph.width - 5 - (now - point.t) * 0.001 * this.speed;
+        pos.x =  this.$.polygraph.width - 5 - (now - point.t) * 0.001 * this.resolution;
         pos.y = this._ya * point.v + this._yb;
       },
 
@@ -175,7 +229,24 @@ Wishlist (coming soon):
 
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
-        var id, pen, ptr, point, pos = {}, dots = [];
+        var id, pen, guide, ptr, point, pos = {}, dots = [];
+
+        // Draw guides
+        for(id in this.guides) {
+          guide = this.guides[id];
+          if(guide.height !== undefined) {
+            ctx.fillStyle = guide.color;
+            ctx.fillRect(0,this._calcY(guide.min),canvas.width,this._ya * guide.height);
+          } else {
+            ctx.beginPath();
+            ctx.strokeStyle = guide.color;
+            ctx.moveTo(0, this._calcY(guide.min));
+            ctx.lineTo(canvas.width, this._calcY(guide.min));
+            ctx.stroke();
+          }
+        }
+
+        // Draw pens
         for(id in this.pens) {
           pen = this.pens[id];
           if(pen.data && pen.data.length > 1) {
@@ -216,8 +287,6 @@ Wishlist (coming soon):
           ctx.fillStyle = dot.color;
           ctx.fill();
         })
-        // ctx.fillStyle = '#FFF';
-        // ctx.fillRect(0,paperTop,scope.width,paperHeight);
       }
 
     });

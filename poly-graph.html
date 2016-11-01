@@ -168,7 +168,7 @@ Wishlist (coming soon):
         if(!pen)
           return;
 
-        if(!timestamp) timestamp = Date.now();
+        if(!timestamp) timestamp = Date.now(); // Maybe: performance.timing.navigationStart + performance.now();
 
         // time must go forward
         if(pen.data.length > 0 && pen.data[pen.data.length-1].t >= timestamp)
@@ -212,7 +212,7 @@ Wishlist (coming soon):
 
       _gameLoop: function(ts) {
         if(this.offsetWidth == this._width && this.offsetHeight == this._height)
-          this._repaint();
+          this._repaint(Date.now()); // Maybe: performance.timing.navigationStart + ts
         else {
           this._width = this.offsetWidth;
           this._height = this.offsetHeight;
@@ -222,8 +222,7 @@ Wishlist (coming soon):
           requestAnimationFrame(this._gameLoop.bind(this));
       },
 
-      _repaint: function() {
-        var now = Date.now();
+      _repaint: function(now) {
         var canvas = this.$.polygraph;
         var ctx = canvas.getContext('2d');
 

@@ -69,7 +69,11 @@
 
                 var resolution = document.querySelector('#resolution');
                 resolution.addEventListener('immediate-value-change', function() {
+                  // TODO: Maybe some fancy metrics overlay showing while in transition ;)
                   el.resolution = resolution.immediateValue;
+                });
+                resolution.addEventListener('value-change', function() {
+                  el.resolution = resolution.value;
                 });
 
               }

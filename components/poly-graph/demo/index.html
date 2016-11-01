@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+  <head>
+    <title>poly-graph demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../paper-slider/paper-slider.html">
+
+    <link rel="import" href="../poly-graph.html">
+
+  </head>
+  <body>
+
+    <div class="vertical-section-container centered">
+      <h3>Basic poly-graph Demo</h3>
+      <demo-snippet>
+        <template>
+          <style is="custom-style" include="demo-pages-shared-styles">
+            .centered {
+              max-width: 800px;
+              width: auto;
+            }
+            #resolution {
+              --paper-slider-knob-start-color: var(--google-blue-700);
+              --paper-slider-knob-start-border-color: transparent;
+              --paper-slider-pin-start-color: var(--google-blue-700);
+            }
+          </style>
+          <poly-graph style="height:300px" resolutiion="50"></poly-graph>
+
+          <span>Resolution (pixels / second):</span><br>
+          <paper-slider id="resolution" style="width:100%" min="10" max="100"
+                        value="50" step="10" pin></paper-slider>
+
+
+          <script>
+            (function(){
+              var _demoData = function() {
+                var el = document.querySelector('poly-graph');
+
+                el.addGuide('max_guide', {min:0.8,height:0.1,name:"MAX",color:'#fdd'});
+                el.addGuide('zero_guide', {min:0,name:"ZERO"});
+                el.addGuide('min_guide', {min:-0.8,height:-0.1,name:"MIN",color:'#dfd'});
+
+                el.addPen('red', {color:'#d00', name:'DaRed', lineWidth:3});
+                el.addPen('green', {color:'#0d0', name:'DaGreen'});
+                el.addPen('blue', {color:'#00d', name:'DaBlue', dotsOnly:true});
+                var count1 = 0;
+                setInterval(function() {
+                  el.addValue('red', Math.sin(count1 * 0.1));
+                  count1++;
+                }, 50);
+
+                var count2 = 0;
+                setInterval(function() {
+                  el.addValue('green', Math.sin(count2 * 0.1));
+                  count2++;
+                }, 20);
+
+                var count3 = 0;
+                setInterval(function() {
+                  el.addValue('blue', Math.sin(count2 * 0.02));
+                  count3++;
+                }, 300);
+
+                var resolution = document.querySelector('#resolution');
+                resolution.addEventListener('immediate-value-change', function() {
+                  el.resolution = resolution.immediateValue;
+                });
+
+              }
+
+              setTimeout(_demoData, 100);  // HACK: let it settle (Edge, IE11)
+            })();
+          </script>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>

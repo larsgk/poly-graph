@@ -1,0 +1,26 @@
+{
+  "name": "poly-graph",
+  "description": "Live or static timeseries and element graphing",
+  "main": "poly-graph.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.7.0",
+    "iron-resizable-behavior": "PolymerElements/iron-resizable-behavior#~1.0.5"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "paper-slider": "PolymerElements/paper-slider#~1.0.12",
+    "web-component-tester": "^4.0.0"
+  },
+  "homepage": "https://github.com/larsgk/poly-graph",
+  "_release": "e5f6bf7f0d",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "e5f6bf7f0d6de2c4b9b054601fd3943b2bb6e246"
+  },
+  "_source": "git://github.com/larsgk/poly-graph.git",
+  "_target": "master",
+  "_originalSource": "larsgk/poly-graph",
+  "_direct": true
+}
